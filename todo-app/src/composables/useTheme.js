@@ -2,12 +2,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const STORAGE_KEY = 'todo-app-theme'
 
-const validThemes = ['dark', 'light', 'system']
+const STORED_THEMES = ['dark', 'light']
 
 function getStoredTheme() {
-  if (typeof localStorage === 'undefined') return 'system'
+  if (typeof localStorage === 'undefined') return null
   const stored = localStorage.getItem(STORAGE_KEY)
-  return validThemes.includes(stored) ? stored : 'system'
+  return STORED_THEMES.includes(stored) ? stored : null
 }
 
 function getSystemPrefersDark() {
@@ -16,19 +16,17 @@ function getSystemPrefersDark() {
 }
 
 export function useTheme() {
-  const theme = ref(getStoredTheme())
+  const storedTheme = ref(getStoredTheme())
   const systemPrefersDark = ref(getSystemPrefersDark())
 
   const resolvedTheme = computed(() => {
-    if (theme.value === 'system') {
-      return systemPrefersDark.value ? 'dark' : 'light'
-    }
-    return theme.value
+    if (storedTheme.value !== null) return storedTheme.value
+    return systemPrefersDark.value ? 'dark' : 'light'
   })
 
   function setTheme(value) {
-    if (!validThemes.includes(value)) return
-    theme.value = value
+    if (!STORED_THEMES.includes(value)) return
+    storedTheme.value = value
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, value)
     }
@@ -48,5 +46,5 @@ export function useTheme() {
     if (mql) mql.removeEventListener('change', syncSystemPreference)
   })
 
-  return { theme, setTheme, resolvedTheme }
+  return { setTheme, resolvedTheme }
 }

@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { useTheme } from './composables/useTheme.js'
 
-const { resolvedTheme, theme, setTheme } = useTheme()
+const { resolvedTheme, setTheme } = useTheme()
 
 watch(resolvedTheme, (value) => {
   if (typeof document !== 'undefined') {
@@ -39,7 +39,7 @@ function toggle(id) {
         <button
           type="button"
           class="theme-btn"
-          :class="{ active: theme === 'light' }"
+          :class="{ active: resolvedTheme === 'light' }"
           @click="setTheme('light')"
           title="Light"
         >
@@ -48,20 +48,11 @@ function toggle(id) {
         <button
           type="button"
           class="theme-btn"
-          :class="{ active: theme === 'dark' }"
+          :class="{ active: resolvedTheme === 'dark' }"
           @click="setTheme('dark')"
           title="Dark"
         >
           Dark
-        </button>
-        <button
-          type="button"
-          class="theme-btn"
-          :class="{ active: theme === 'system' }"
-          @click="setTheme('system')"
-          title="System"
-        >
-          System
         </button>
       </div>
     </header>
