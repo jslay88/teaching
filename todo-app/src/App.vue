@@ -1,24 +1,51 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+
+const STORAGE_KEY = 'todo-app-todos'
 
 const todos = ref([])
 const input = ref('')
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '[]'
+    const parsed = JSON.parse(raw)
+    todos.value = Array.isArray(parsed) ? parsed : []
+  } catch {
+    todos.value = []
+  }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos.value))
+  } catch {
+    // ignore quota or other storage errors
+  }
+}
+
+onMounted(loadFromStorage)
 
 function add() {
   const text = input.value.trim()
   if (text) {
     todos.value.push({ id: Date.now(), text, done: false })
     input.value = ''
+    saveToStorage()
   }
 }
 
 function remove(id) {
   todos.value = todos.value.filter((t) => t.id !== id)
+  saveToStorage()
 }
 
 function toggle(id) {
   const t = todos.value.find((x) => x.id === id)
-  if (t) t.done = !t.done
+  if (t) {
+    t.done = !t.done
+    saveToStorage()
+  }
 }
 </script>
 
