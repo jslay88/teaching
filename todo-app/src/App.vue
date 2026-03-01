@@ -1,5 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useTodos } from './composables/useTodos.js'
 import { useTheme } from './composables/useTheme.js'
 
 const { resolvedTheme, setTheme } = useTheme()
@@ -10,24 +11,38 @@ watch(resolvedTheme, (value) => {
   }
 }, { immediate: true })
 
-const todos = ref([])
+const STORAGE_KEY = 'todo-app-todos'
+
+const { todos, addTodo, removeTodo, toggleDone } = useTodos()
 const input = ref('')
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '[]'
+    const parsed = JSON.parse(raw)
+    todos.value = Array.isArray(parsed) ? parsed : []
+  } catch {
+    todos.value = []
+  }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos.value))
+  } catch {
+    // ignore quota or other storage errors
+  }
+}
+
+onMounted(loadFromStorage)
+watch(todos, saveToStorage, { deep: true })
 
 function add() {
   const text = input.value.trim()
   if (text) {
-    todos.value.push({ id: Date.now(), text, done: false })
+    addTodo(text)
     input.value = ''
   }
-}
-
-function remove(id) {
-  todos.value = todos.value.filter((t) => t.id !== id)
-}
-
-function toggle(id) {
-  const t = todos.value.find((x) => x.id === id)
-  if (t) t.done = !t.done
 }
 </script>
 
@@ -63,9 +78,9 @@ function toggle(id) {
       </form>
       <ul class="list">
         <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-          <input type="checkbox" :checked="todo.done" @change="toggle(todo.id)" />
+          <input type="checkbox" :checked="todo.done" @change="toggleDone(todo.id)" />
           <span>{{ todo.text }}</span>
-          <button type="button" @click="remove(todo.id)">×</button>
+          <button type="button" @click="removeTodo(todo.id)">×</button>
         </li>
       </ul>
     </div>
