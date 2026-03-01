@@ -1,24 +1,14 @@
 <script setup>
 import { ref } from 'vue'
+import { useTodos } from './composables/useTodos'
+import Board from './components/Board.vue'
 
-const todos = ref([])
+const { addTodo } = useTodos()
 const input = ref('')
 
 function add() {
-  const text = input.value.trim()
-  if (text) {
-    todos.value.push({ id: Date.now(), text, done: false })
-    input.value = ''
-  }
-}
-
-function remove(id) {
-  todos.value = todos.value.filter((t) => t.id !== id)
-}
-
-function toggle(id) {
-  const t = todos.value.find((x) => x.id === id)
-  if (t) t.done = !t.done
+  addTodo(input.value)
+  input.value = ''
 }
 </script>
 
@@ -29,19 +19,13 @@ function toggle(id) {
       <input v-model="input" placeholder="What to do?" />
       <button type="submit">Add</button>
     </form>
-    <ul class="list">
-      <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-        <input type="checkbox" :checked="todo.done" @change="toggle(todo.id)" />
-        <span>{{ todo.text }}</span>
-        <button type="button" @click="remove(todo.id)">×</button>
-      </li>
-    </ul>
+    <Board />
   </div>
 </template>
 
 <style scoped>
 .app {
-  max-width: 400px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
 }
@@ -56,29 +40,8 @@ h1 {
 }
 .add-form input {
   flex: 1;
+  max-width: 400px;
   padding: 0.5rem;
   font-size: 1rem;
-}
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #333;
-}
-.list li.done span {
-  text-decoration: line-through;
-  opacity: 0.7;
-}
-.list li button {
-  margin-left: auto;
-  padding: 0.2rem 0.5rem;
-  font-size: 1.2rem;
-  line-height: 1;
 }
 </style>
