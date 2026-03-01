@@ -1,37 +1,192 @@
 <script setup>
-import { ref } from 'vue'
-import { useTodos } from './composables/useTodos'
+import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLocale } from './composables/useLocale'
+import { useTodos } from './composables/useTodos.js'
+import { useTheme } from './composables/useTheme.js'
 import Board from './components/Board.vue'
 
-const { addTodo } = useTodos()
+const { t } = useI18n()
+const { locale, setLocale, supportedLocales } = useLocale()
+const { resolvedTheme, setTheme } = useTheme()
+
+watch(resolvedTheme, (value) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', value)
+  }
+}, { immediate: true })
+
+const STORAGE_KEY = 'todo-app-todos'
+
+const { todos, addTodo } = useTodos()
 const input = ref('')
 
+const localeLabels = {
+  en: () => t('locale.en'),
+  es: () => t('locale.es'),
+  fr: () => t('locale.fr'),
+  de: () => t('locale.de'),
+}
+
+function migrateTodo(item) {
+  if (item.status !== undefined) return item
+  return {
+    id: item.id,
+    text: item.text ?? '',
+    status: item.done ? 'done' : 'todo',
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '[]'
+    const parsed = JSON.parse(raw)
+    const list = Array.isArray(parsed) ? parsed : []
+    todos.value = list.map(migrateTodo)
+  } catch {
+    todos.value = []
+  }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos.value))
+  } catch {
+    // ignore quota or other storage errors
+  }
+}
+
+onMounted(loadFromStorage)
+watch(todos, saveToStorage, { deep: true })
+
 function add() {
-  addTodo(input.value)
-  input.value = ''
+  const text = input.value.trim()
+  if (text) {
+    addTodo(text)
+    input.value = ''
+  }
 }
 </script>
 
 <template>
-  <div class="app">
-    <h1>Todo</h1>
-    <form @submit.prevent="add" class="add-form">
-      <input v-model="input" placeholder="What to do?" />
-      <button type="submit">Add</button>
-    </form>
-    <Board />
+  <div class="app-root" :data-theme="resolvedTheme">
+    <header class="app-header">
+      <h1>{{ t('app.title') }}</h1>
+      <div class="header-controls">
+        <div class="theme-switcher" role="group" aria-label="Theme">
+          <button
+            type="button"
+            class="theme-btn"
+            :class="{ active: resolvedTheme === 'light' }"
+            @click="setTheme('light')"
+            :title="t('theme.light')"
+          >
+            {{ t('theme.light') }}
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            :class="{ active: resolvedTheme === 'dark' }"
+            @click="setTheme('dark')"
+            :title="t('theme.dark')"
+          >
+            {{ t('theme.dark') }}
+          </button>
+        </div>
+        <div class="locale-switcher">
+          <label for="locale-select">{{ t('locale.label') }}</label>
+          <select
+            id="locale-select"
+            :value="locale"
+            @change="setLocale(($event.target).value)"
+            class="locale-select"
+          >
+            <option
+              v-for="loc in supportedLocales"
+              :key="loc"
+              :value="loc"
+            >
+              {{ localeLabels[loc]() }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <div class="app">
+      <form @submit.prevent="add" class="add-form">
+        <input v-model="input" :placeholder="t('placeholder')" />
+        <button type="submit">{{ t('buttons.add') }}</button>
+      </form>
+      <Board />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.app-root {
+  min-height: 100vh;
+  color: var(--text);
+  background-color: var(--bg);
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.theme-switcher {
+  display: flex;
+  gap: 0.25rem;
+}
+.theme-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.theme-btn:hover {
+  opacity: 0.9;
+}
+.theme-btn.active {
+  border-color: var(--text);
+  font-weight: 600;
+}
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.locale-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.locale-switcher label {
+  font-size: 0.875rem;
+}
+.locale-select {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+}
 .app {
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
-}
-h1 {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
 }
 .add-form {
   display: flex;
@@ -43,5 +198,9 @@ h1 {
   max-width: 400px;
   padding: 0.5rem;
   font-size: 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
 }
 </style>

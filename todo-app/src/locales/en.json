@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "Todo"
+  },
+  "placeholder": "What to do?",
+  "buttons": {
+    "add": "Add",
+    "remove": "Remove"
+  },
+  "columns": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "done": "Done"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German"
+  }
+}

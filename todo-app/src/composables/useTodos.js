@@ -14,6 +14,10 @@ export const COLUMNS = [
 
 const todos = ref([])
 
+/**
+ * Composable for todo CRUD and derived state. Single source of truth for list view,
+ * Kanban board, and persistence. Uses status (todo|in_progress|done); done = status === 'done'.
+ */
 export function useTodos() {
   const todosByStatus = (status) =>
     computed(() => todos.value.filter((t) => t.status === status))
@@ -40,6 +44,7 @@ export function useTodos() {
       ...t,
       ...(payload.text !== undefined && { text: payload.text }),
       ...(payload.status !== undefined && { status: payload.status }),
+      ...(payload.done !== undefined && { status: payload.done ? STATUS.DONE : STATUS.TODO }),
     }
     todos.value = todos.value.slice(0, index).concat(updated, todos.value.slice(index + 1))
   }

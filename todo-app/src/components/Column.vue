@@ -79,17 +79,17 @@ function onDrop(e) {
   flex: 1;
   min-width: 200px;
   max-width: 320px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--input-bg);
   border-radius: 12px;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
 }
 
 .column__title {
   margin: 0 0 1rem;
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
 }
 
 .column__cards {
@@ -99,8 +99,8 @@ function onDrop(e) {
 }
 
 .column__cards--drag-over {
-  background: rgba(255, 255, 255, 0.08);
-  outline: 2px dashed rgba(255, 255, 255, 0.3);
+  background: var(--input-border);
+  outline: 2px dashed var(--text-muted);
   outline-offset: -2px;
 }
 </style>

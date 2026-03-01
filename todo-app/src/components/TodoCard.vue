@@ -1,4 +1,7 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const props = defineProps({
   todo: {
     type: Object,
@@ -43,14 +46,14 @@ function onDragEnd(e) {
         :value="todo.status"
         @change="onMove"
       >
-        <option value="todo">To Do</option>
-        <option value="in_progress">In Progress</option>
-        <option value="done">Done</option>
+        <option value="todo">{{ t('columns.todo') }}</option>
+        <option value="in_progress">{{ t('columns.in_progress') }}</option>
+        <option value="done">{{ t('columns.done') }}</option>
       </select>
       <button
         type="button"
         class="todo-card__remove"
-        aria-label="Remove"
+        :aria-label="t('buttons.remove')"
         @click="remove"
       >
         ×
@@ -61,8 +64,8 @@ function onDragEnd(e) {
 
 <style scoped>
 .todo-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
@@ -89,9 +92,9 @@ function onDragEnd(e) {
   padding: 0.25rem 0.5rem;
   font-size: 0.85rem;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: inherit;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 .todo-card__remove {
@@ -101,7 +104,7 @@ function onDragEnd(e) {
   line-height: 1;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
