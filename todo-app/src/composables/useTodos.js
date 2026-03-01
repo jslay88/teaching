@@ -1,19 +1,35 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+
+const STATUS = {
+  TODO: 'todo',
+  IN_PROGRESS: 'in_progress',
+  DONE: 'done',
+}
+
+export const COLUMNS = [
+  { id: STATUS.TODO, label: 'To Do' },
+  { id: STATUS.IN_PROGRESS, label: 'In Progress' },
+  { id: STATUS.DONE, label: 'Done' },
+]
 
 const todos = ref([])
 
 /**
  * Composable for todo CRUD and derived state. Single source of truth for list view,
- * Kanban board, and future persistence. Components use this instead of prop drilling.
- *
- * @returns {{ todos: Ref<Todo[]>, addTodo: (text: string) => void, removeTodo: (id: number) => void, updateTodo: (id: number, payload: { text?: string, done?: boolean }) => void, toggleDone: (id: number) => void }}
+ * Kanban board, and persistence. Uses status (todo|in_progress|done); done = status === 'done'.
  */
 export function useTodos() {
+  const todosByStatus = (status) =>
+    computed(() => todos.value.filter((t) => t.status === status))
+
   function addTodo(text) {
     const trimmed = (text || '').trim()
-    if (trimmed) {
-      todos.value.push({ id: Date.now(), text: trimmed, done: false })
-    }
+    if (!trimmed) return
+    todos.value.push({
+      id: Date.now(),
+      text: trimmed,
+      status: STATUS.TODO,
+    })
   }
 
   function removeTodo(id) {
@@ -21,23 +37,37 @@ export function useTodos() {
   }
 
   function updateTodo(id, payload) {
-    const t = todos.value.find((x) => x.id === id)
-    if (t && payload) {
-      if (payload.text !== undefined) t.text = payload.text
-      if (payload.done !== undefined) t.done = payload.done
+    const index = todos.value.findIndex((x) => x.id === id)
+    if (index === -1) return
+    const t = todos.value[index]
+    const updated = {
+      ...t,
+      ...(payload.text !== undefined && { text: payload.text }),
+      ...(payload.status !== undefined && { status: payload.status }),
+      ...(payload.done !== undefined && { status: payload.done ? STATUS.DONE : STATUS.TODO }),
     }
+    todos.value = todos.value.slice(0, index).concat(updated, todos.value.slice(index + 1))
+  }
+
+  function updateTodoStatus(id, status) {
+    updateTodo(id, { status })
   }
 
   function toggleDone(id) {
     const t = todos.value.find((x) => x.id === id)
-    if (t) t.done = !t.done
+    if (!t) return
+    updateTodo(id, { status: t.status === STATUS.DONE ? STATUS.TODO : STATUS.DONE })
   }
 
   return {
     todos,
+    COLUMNS,
+    STATUS,
+    todosByStatus,
     addTodo,
     removeTodo,
     updateTodo,
+    updateTodoStatus,
     toggleDone,
   }
 }

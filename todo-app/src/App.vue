@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useLocale } from './composables/useLocale'
 import { useTodos } from './composables/useTodos.js'
 import { useTheme } from './composables/useTheme.js'
+import Board from './components/Board.vue'
 
 const { t } = useI18n()
 const { locale, setLocale, supportedLocales } = useLocale()
@@ -17,7 +18,7 @@ watch(resolvedTheme, (value) => {
 
 const STORAGE_KEY = 'todo-app-todos'
 
-const { todos, addTodo, removeTodo, toggleDone } = useTodos()
+const { todos, addTodo } = useTodos()
 const input = ref('')
 
 const localeLabels = {
@@ -27,11 +28,21 @@ const localeLabels = {
   de: () => t('locale.de'),
 }
 
+function migrateTodo(item) {
+  if (item.status !== undefined) return item
+  return {
+    id: item.id,
+    text: item.text ?? '',
+    status: item.done ? 'done' : 'todo',
+  }
+}
+
 function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || '[]'
     const parsed = JSON.parse(raw)
-    todos.value = Array.isArray(parsed) ? parsed : []
+    const list = Array.isArray(parsed) ? parsed : []
+    todos.value = list.map(migrateTodo)
   } catch {
     todos.value = []
   }
@@ -106,19 +117,7 @@ function add() {
         <input v-model="input" :placeholder="t('placeholder')" />
         <button type="submit">{{ t('buttons.add') }}</button>
       </form>
-      <ul class="list">
-        <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-          <input type="checkbox" :checked="todo.done" @change="toggleDone(todo.id)" />
-          <span>{{ todo.text }}</span>
-          <button
-            type="button"
-            @click="removeTodo(todo.id)"
-            :aria-label="t('buttons.remove')"
-          >
-            ×
-          </button>
-        </li>
-      </ul>
+      <Board />
     </div>
   </div>
 </template>
@@ -185,7 +184,7 @@ function add() {
   color: var(--text);
 }
 .app {
-  max-width: 400px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
 }
@@ -196,41 +195,12 @@ function add() {
 }
 .add-form input {
   flex: 1;
+  max-width: 400px;
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid var(--input-border);
   border-radius: 4px;
   background: var(--input-bg);
   color: var(--text);
-}
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-}
-.list li.done span {
-  text-decoration: line-through;
-  opacity: 0.7;
-}
-.list li button {
-  margin-left: auto;
-  padding: 0.2rem 0.5rem;
-  font-size: 1.2rem;
-  line-height: 1;
-  border: 1px solid var(--input-border);
-  border-radius: 4px;
-  background: var(--input-bg);
-  color: var(--text);
-  cursor: pointer;
-}
-.list li button:hover {
-  opacity: 0.9;
 }
 </style>
