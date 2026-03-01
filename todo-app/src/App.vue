@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useTodos } from './composables/useTodos.js'
 
 const STORAGE_KEY = 'todo-app-todos'
 
-const todos = ref([])
+const { todos, addTodo, removeTodo, toggleDone } = useTodos()
 const input = ref('')
 
 function loadFromStorage() {
@@ -25,26 +26,13 @@ function saveToStorage() {
 }
 
 onMounted(loadFromStorage)
+watch(todos, saveToStorage, { deep: true })
 
 function add() {
   const text = input.value.trim()
   if (text) {
-    todos.value.push({ id: Date.now(), text, done: false })
+    addTodo(text)
     input.value = ''
-    saveToStorage()
-  }
-}
-
-function remove(id) {
-  todos.value = todos.value.filter((t) => t.id !== id)
-  saveToStorage()
-}
-
-function toggle(id) {
-  const t = todos.value.find((x) => x.id === id)
-  if (t) {
-    t.done = !t.done
-    saveToStorage()
   }
 }
 </script>
@@ -58,9 +46,9 @@ function toggle(id) {
     </form>
     <ul class="list">
       <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
-        <input type="checkbox" :checked="todo.done" @change="toggle(todo.id)" />
+        <input type="checkbox" :checked="todo.done" @change="toggleDone(todo.id)" />
         <span>{{ todo.text }}</span>
-        <button type="button" @click="remove(todo.id)">×</button>
+        <button type="button" @click="removeTodo(todo.id)">×</button>
       </li>
     </ul>
   </div>
