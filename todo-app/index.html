@@ -7,6 +7,17 @@
     <title>Todo</title>
   </head>
   <body>
+    <script>
+      (function () {
+        var key = 'todo-app-theme';
+        var stored = localStorage.getItem(key);
+        var valid = ['dark', 'light'];
+        var resolved = valid.indexOf(stored) >= 0
+          ? stored
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', resolved);
+      })();
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
