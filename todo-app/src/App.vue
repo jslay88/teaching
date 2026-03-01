@@ -1,9 +1,32 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useTodos } from './composables/useTodos.js'
+
+const STORAGE_KEY = 'todo-app-todos'
 
 const { todos, addTodo, removeTodo, toggleDone } = useTodos()
 const input = ref('')
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '[]'
+    const parsed = JSON.parse(raw)
+    todos.value = Array.isArray(parsed) ? parsed : []
+  } catch {
+    todos.value = []
+  }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos.value))
+  } catch {
+    // ignore quota or other storage errors
+  }
+}
+
+onMounted(loadFromStorage)
+watch(todos, saveToStorage, { deep: true })
 
 function add() {
   const text = input.value.trim()
