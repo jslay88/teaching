@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "À faire"
+  },
+  "placeholder": "Quoi faire ?",
+  "buttons": {
+    "add": "Ajouter",
+    "remove": "Supprimer"
+  },
+  "columns": {
+    "todo": "À faire",
+    "in_progress": "En cours",
+    "done": "Fait"
+  },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "locale": {
+    "label": "Langue",
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français",
+    "de": "Allemand"
+  }
+}

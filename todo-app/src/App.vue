@@ -1,8 +1,20 @@
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLocale } from './composables/useLocale'
+
+const { t } = useI18n()
+const { locale, setLocale, supportedLocales } = useLocale()
 
 const todos = ref([])
 const input = ref('')
+
+const localeLabels = {
+  en: () => t('locale.en'),
+  es: () => t('locale.es'),
+  fr: () => t('locale.fr'),
+  de: () => t('locale.de'),
+}
 
 function add() {
   const text = input.value.trim()
@@ -13,27 +25,52 @@ function add() {
 }
 
 function remove(id) {
-  todos.value = todos.value.filter((t) => t.id !== id)
+  todos.value = todos.value.filter((item) => item.id !== id)
 }
 
 function toggle(id) {
-  const t = todos.value.find((x) => x.id === id)
-  if (t) t.done = !t.done
+  const todo = todos.value.find((x) => x.id === id)
+  if (todo) todo.done = !todo.done
 }
 </script>
 
 <template>
   <div class="app">
-    <h1>Todo</h1>
+    <header class="header">
+      <h1>{{ t('app.title') }}</h1>
+      <div class="locale-switcher">
+        <label for="locale-select">{{ t('locale.label') }}</label>
+        <select
+          id="locale-select"
+          :value="locale"
+          @change="setLocale(($event.target).value)"
+          class="locale-select"
+        >
+          <option
+            v-for="loc in supportedLocales"
+            :key="loc"
+            :value="loc"
+          >
+            {{ localeLabels[loc]() }}
+          </option>
+        </select>
+      </div>
+    </header>
     <form @submit.prevent="add" class="add-form">
-      <input v-model="input" placeholder="What to do?" />
-      <button type="submit">Add</button>
+      <input v-model="input" :placeholder="t('placeholder')" />
+      <button type="submit">{{ t('buttons.add') }}</button>
     </form>
     <ul class="list">
       <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
         <input type="checkbox" :checked="todo.done" @change="toggle(todo.id)" />
         <span>{{ todo.text }}</span>
-        <button type="button" @click="remove(todo.id)">×</button>
+        <button
+          type="button"
+          @click="remove(todo.id)"
+          :aria-label="t('buttons.remove')"
+        >
+          ×
+        </button>
       </li>
     </ul>
   </div>
@@ -45,9 +82,33 @@ function toggle(id) {
   margin: 0 auto;
   padding: 1rem;
 }
-h1 {
-  margin: 0 0 1rem;
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.header h1 {
+  margin: 0;
   font-size: 1.5rem;
+}
+.locale-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.locale-switcher label {
+  font-size: 0.875rem;
+}
+.locale-select {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: inherit;
+  color: inherit;
 }
 .add-form {
   display: flex;
