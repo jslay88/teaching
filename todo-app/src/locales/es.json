@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "Tareas"
+  },
+  "placeholder": "¿Qué hay que hacer?",
+  "buttons": {
+    "add": "Añadir",
+    "remove": "Eliminar"
+  },
+  "columns": {
+    "todo": "Por hacer",
+    "in_progress": "En progreso",
+    "done": "Hecho"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "locale": {
+    "label": "Idioma",
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés",
+    "de": "Alemán"
+  }
+}

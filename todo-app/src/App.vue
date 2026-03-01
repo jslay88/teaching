@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLocale } from './composables/useLocale'
 import { useTodos } from './composables/useTodos.js'
 import { useTheme } from './composables/useTheme.js'
 
+const { t } = useI18n()
+const { locale, setLocale, supportedLocales } = useLocale()
 const { resolvedTheme, setTheme } = useTheme()
 
 watch(resolvedTheme, (value) => {
@@ -15,6 +19,13 @@ const STORAGE_KEY = 'todo-app-todos'
 
 const { todos, addTodo, removeTodo, toggleDone } = useTodos()
 const input = ref('')
+
+const localeLabels = {
+  en: () => t('locale.en'),
+  es: () => t('locale.es'),
+  fr: () => t('locale.fr'),
+  de: () => t('locale.de'),
+}
 
 function loadFromStorage() {
   try {
@@ -49,38 +60,63 @@ function add() {
 <template>
   <div class="app-root" :data-theme="resolvedTheme">
     <header class="app-header">
-      <h1>Todo</h1>
-      <div class="theme-switcher" role="group" aria-label="Theme">
-        <button
-          type="button"
-          class="theme-btn"
-          :class="{ active: resolvedTheme === 'light' }"
-          @click="setTheme('light')"
-          title="Light"
-        >
-          Light
-        </button>
-        <button
-          type="button"
-          class="theme-btn"
-          :class="{ active: resolvedTheme === 'dark' }"
-          @click="setTheme('dark')"
-          title="Dark"
-        >
-          Dark
-        </button>
+      <h1>{{ t('app.title') }}</h1>
+      <div class="header-controls">
+        <div class="theme-switcher" role="group" aria-label="Theme">
+          <button
+            type="button"
+            class="theme-btn"
+            :class="{ active: resolvedTheme === 'light' }"
+            @click="setTheme('light')"
+            :title="t('theme.light')"
+          >
+            {{ t('theme.light') }}
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            :class="{ active: resolvedTheme === 'dark' }"
+            @click="setTheme('dark')"
+            :title="t('theme.dark')"
+          >
+            {{ t('theme.dark') }}
+          </button>
+        </div>
+        <div class="locale-switcher">
+          <label for="locale-select">{{ t('locale.label') }}</label>
+          <select
+            id="locale-select"
+            :value="locale"
+            @change="setLocale(($event.target).value)"
+            class="locale-select"
+          >
+            <option
+              v-for="loc in supportedLocales"
+              :key="loc"
+              :value="loc"
+            >
+              {{ localeLabels[loc]() }}
+            </option>
+          </select>
+        </div>
       </div>
     </header>
     <div class="app">
       <form @submit.prevent="add" class="add-form">
-        <input v-model="input" placeholder="What to do?" />
-        <button type="submit">Add</button>
+        <input v-model="input" :placeholder="t('placeholder')" />
+        <button type="submit">{{ t('buttons.add') }}</button>
       </form>
       <ul class="list">
         <li v-for="todo in todos" :key="todo.id" :class="{ done: todo.done }">
           <input type="checkbox" :checked="todo.done" @change="toggleDone(todo.id)" />
           <span>{{ todo.text }}</span>
-          <button type="button" @click="removeTodo(todo.id)">×</button>
+          <button
+            type="button"
+            @click="removeTodo(todo.id)"
+            :aria-label="t('buttons.remove')"
+          >
+            ×
+          </button>
         </li>
       </ul>
     </div>
@@ -125,6 +161,28 @@ function add() {
 .theme-btn.active {
   border-color: var(--text);
   font-weight: 600;
+}
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.locale-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.locale-switcher label {
+  font-size: 0.875rem;
+}
+.locale-select {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
 }
 .app {
   max-width: 400px;

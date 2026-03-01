@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "Aufgaben"
+  },
+  "placeholder": "Was steht an?",
+  "buttons": {
+    "add": "Hinzufügen",
+    "remove": "Entfernen"
+  },
+  "columns": {
+    "todo": "Zu erledigen",
+    "in_progress": "In Bearbeitung",
+    "done": "Erledigt"
+  },
+  "theme": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "locale": {
+    "label": "Sprache",
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "de": "Deutsch"
+  }
+}
