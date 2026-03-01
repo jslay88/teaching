@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import TodoCard from './TodoCard.vue'
 
 const props = defineProps({
@@ -14,6 +15,8 @@ const props = defineProps({
 
 const emit = defineEmits(['remove', 'move'])
 
+const dragOver = ref(false)
+
 function onRemove(id) {
   emit('remove', id)
 }
@@ -21,12 +24,45 @@ function onRemove(id) {
 function onMove({ id, status }) {
   emit('move', { id, status })
 }
+
+function onDragOver(e) {
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dragOver.value = true
+}
+
+function onDragLeave() {
+  dragOver.value = false
+}
+
+function onDrop(e) {
+  e.preventDefault()
+  dragOver.value = false
+  const raw = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('application/json')
+  let id
+  try {
+    const parsed = JSON.parse(raw)
+    id = typeof parsed === 'object' && parsed != null && 'id' in parsed ? parsed.id : raw
+  } catch {
+    id = raw
+  }
+  id = typeof id === 'number' ? id : Number(id)
+  if (Number.isNaN(id)) return
+  const status = props.column.id
+  emit('move', { id, status })
+}
 </script>
 
 <template>
   <section class="column">
     <h2 class="column__title">{{ column.label }}</h2>
-    <div class="column__cards">
+    <div
+      class="column__cards"
+      :class="{ 'column__cards--drag-over': dragOver }"
+      @dragover="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
+    >
       <TodoCard
         v-for="todo in todos"
         :key="todo.id"
@@ -58,5 +94,13 @@ function onMove({ id, status }) {
 
 .column__cards {
   min-height: 80px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.column__cards--drag-over {
+  background: rgba(255, 255, 255, 0.08);
+  outline: 2px dashed rgba(255, 255, 255, 0.3);
+  outline-offset: -2px;
 }
 </style>

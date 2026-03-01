@@ -33,10 +33,15 @@ export function useTodos() {
   }
 
   function updateTodo(id, payload) {
-    const t = todos.value.find((x) => x.id === id)
-    if (!t) return
-    if (payload.text !== undefined) t.text = payload.text
-    if (payload.status !== undefined) t.status = payload.status
+    const index = todos.value.findIndex((x) => x.id === id)
+    if (index === -1) return
+    const t = todos.value[index]
+    const updated = {
+      ...t,
+      ...(payload.text !== undefined && { text: payload.text }),
+      ...(payload.status !== undefined && { status: payload.status }),
+    }
+    todos.value = todos.value.slice(0, index).concat(updated, todos.value.slice(index + 1))
   }
 
   function updateTodoStatus(id, status) {
@@ -46,7 +51,7 @@ export function useTodos() {
   function toggleDone(id) {
     const t = todos.value.find((x) => x.id === id)
     if (!t) return
-    t.status = t.status === STATUS.DONE ? STATUS.TODO : STATUS.DONE
+    updateTodo(id, { status: t.status === STATUS.DONE ? STATUS.TODO : STATUS.DONE })
   }
 
   return {

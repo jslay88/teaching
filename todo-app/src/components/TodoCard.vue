@@ -1,5 +1,5 @@
 <script setup>
-defineProps({
+const props = defineProps({
   todo: {
     type: Object,
     required: true,
@@ -9,17 +9,33 @@ defineProps({
 const emit = defineEmits(['remove', 'move'])
 
 function remove() {
-  emit('remove', todo.id)
+  emit('remove', props.todo.id)
 }
 
 function onMove(e) {
   const status = e.target.value
-  if (status && status !== todo.status) emit('move', { id: todo.id, status })
+  if (status && status !== props.todo.status) emit('move', { id: props.todo.id, status })
+}
+
+function onDragStart(e) {
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('application/json', JSON.stringify({ id: props.todo.id }))
+  e.dataTransfer.setData('text/plain', String(props.todo.id))
+  e.target.classList.add('todo-card--dragging')
+}
+
+function onDragEnd(e) {
+  e.target.classList.remove('todo-card--dragging')
 }
 </script>
 
 <template>
-  <article class="todo-card">
+  <article
+    class="todo-card"
+    draggable="true"
+    @dragstart="onDragStart"
+    @dragend="onDragEnd"
+  >
     <p class="todo-card__text">{{ todo.text }}</p>
     <div class="todo-card__actions">
       <select
@@ -50,6 +66,11 @@ function onMove(e) {
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
+  cursor: grab;
+}
+
+.todo-card:active {
+  cursor: grabbing;
 }
 
 .todo-card__text {
@@ -86,5 +107,9 @@ function onMove(e) {
 
 .todo-card__remove:hover {
   color: #f66;
+}
+
+.todo-card--dragging {
+  opacity: 0.5;
 }
 </style>
